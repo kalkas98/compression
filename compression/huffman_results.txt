@@ -1,0 +1,15 @@
+FILE			SIZE		RATE
+E.coli			1159691		2.00
+alice29.txt		87790		4.61
+asyoulik.txt	75900		4.84
+bible.txt		2218545		4.38
+cp.html			16309		5.27
+fields.c 		7140		5.04
+grammar.lsp		2268		4.66
+kennedy.xls		462808		3.59
+lcet10.txt		250677		4.70
+plrabn12.txt	275702		4.58
+ptt5			106742		1.66
+sum				25924		5.37
+world192.txt	1558725		5.04
+xargs.1			2698		4.92

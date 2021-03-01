@@ -35,17 +35,21 @@ int main(int argc, char* argv[])
     {
         string encoded = huffman_encode(file);
         int dotindex = file.find_last_of("."); 
-        string fileExtension =  file.substr(dotindex);
+        string fileExtension = "";
+        if(dotindex != string::npos)
+            fileExtension =  file.substr(dotindex);
         huffman_decode(encoded, fileExtension);
     }
     else if(encoding == "lzw" || encoding == "LZW")
     {
         ifstream in(file);
         ofstream out("encoded.lzw");
-        lz_encode(in, out);
+        lz_encode(in, out, file);
         ifstream encoded_in_stream("encoded.lzw", ios::binary);
         int dotindex = file.find_last_of("."); 
-        string fileExtension =  file.substr(dotindex);
+        string fileExtension = "";
+        if(dotindex != string::npos)
+            fileExtension =  file.substr(dotindex);
         ofstream out_decoded("decoded"+fileExtension);
         lz_decode(encoded_in_stream, out_decoded);
 

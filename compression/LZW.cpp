@@ -21,9 +21,11 @@ int binary_to_int(string binary)
     return stoi(binary, nullptr,2);
 }
 
-void lz_encode(ifstream &input, ofstream &out)
+void lz_encode(ifstream &input, ofstream &out, string fileName)
 {
     cout << "--- Encoding with LZW ---" << endl;
+    if(fileName != "")
+        cout << "File: " << fileName << endl;
     //Initialize codeword dictionary with all possible single symbols
     map<string, unsigned int> code_dict;
     unsigned char i{0};
@@ -69,8 +71,7 @@ void lz_encode(ifstream &input, ofstream &out)
     double avg_bits_per_codeword = (double)encoded_string.size() / codeword_counter;
     double avg_symbols_per_codeword = (double)symbol_counter/codeword_counter;
     double rate = avg_bits_per_codeword/avg_symbols_per_codeword;
-    cout.precision(3);
-    cout << "Rate: " << rate << endl;
+
 
     //Write the bitstream to a file
     BitWriter bit_writer{};
@@ -81,6 +82,10 @@ void lz_encode(ifstream &input, ofstream &out)
     }
     bit_writer.flush(out, false);
     out.close();
+
+    cout << "Size: " << (int)ceil((double)encoded_string.size()/8) << endl;
+    cout.precision(3);
+    cout << "Rate: " << rate << endl;
 
 }
 
