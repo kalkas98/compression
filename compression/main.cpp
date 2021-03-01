@@ -33,11 +33,10 @@ int main(int argc, char* argv[])
     string encoding = argv[2];
     if(encoding == "huffman")//TODO: pass streams instead of file name
     {
-        string encoded = encode(file);
+        string encoded = huffman_encode(file);
         int dotindex = file.find_last_of("."); 
         string fileExtension =  file.substr(dotindex);
-        cout << "File extension: " << fileExtension << endl;
-        decode(encoded, fileExtension);
+        huffman_decode(encoded, fileExtension);
     }
     else if(encoding == "lzw" || encoding == "LZW")
     {

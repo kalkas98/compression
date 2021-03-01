@@ -120,6 +120,7 @@ vector<string> codewordsFromCodewordLength(vector<int> lengths)
 //Set the the codewords to be based on the length of the original codewords
 //Returns a vector containing pairs containing symbols and their new codewords
 //The returned vector is sorted on codeword length.
+//The codeword map that this function takes as an argument is alaso altered so that it contains the new codewords
 vector<pair<char, string>> encodeWithCodewordlength(map<char,string>& codewords)
 {
     vector<int> codeword_lengths;
@@ -208,7 +209,7 @@ bool write_codewords(const map<char, string> &codewords, ifstream &input, ofstre
 /*
  * Encodes the file with the given path with the huffman coding algorithm and returns the path to the encoded file
  */
-string encode(string inputFileName)
+string huffman_encode(string inputFileName)
 {
     cout << "--- Encoding with huffman ---" << endl;
            
@@ -216,7 +217,25 @@ string encode(string inputFileName)
     map<char, int> freqTable  = buildFreqTable(input);
 
     HuffNode* root = buildHuffmantree(freqTable);
-    map<char, string> codewords = buildCodewordMap(root);
+    map<char, string> codewords = buildCodewordMap(root); //map that contains the symbol as key and the binary codword as value
+
+
+    //Calculate the rate
+    //We will write different codewords(based on the length of the codewords) to the encoded file later.
+    //But since all codewords will still be of the same length the rate wont change
+    int sum{0};
+    int total_freq{0};
+    for (auto frq : freqTable)
+    {
+        total_freq += frq.second;
+    }
+    
+    for (auto codeword : codewords)
+    {
+        sum += freqTable[codeword.first] * codeword.second.size();
+    }
+    double rate = (double)sum/total_freq;
+    cout.precision(3);
 
     //Alter the code map so that the codewords are based on the length of the original code words
     vector<pair<char, string>> new_codewords = encodeWithCodewordlength(codewords);
@@ -235,6 +254,9 @@ string encode(string inputFileName)
         throw runtime_error("Error when writing codewords to encoded file");
     output.close();
     root->freeTree();
+
+    
+    cout << "Rate: " << rate << endl; 
     cout << "-----------------------------" << endl;    
     return encodedFile;
 }
@@ -280,7 +302,7 @@ int readHeader(ifstream &input, map<string, char> & codewordmap)
     return headerLength;
 }
 
-void decode(string filePath, string fileExtension)
+void huffman_decode(string filePath, string fileExtension)
 {
     cout << "--- Decoding huffman code ---" << endl;
     cout << "Decoding encoded file: " + filePath << endl;

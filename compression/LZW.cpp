@@ -39,24 +39,38 @@ void lz_encode(ifstream &input, ofstream &out)
     string read_code = "";
     char read_symbol;
     string encoded_string = "";
+
+    int codeword_counter{0};//Counters so we can easily calculate rate later
+    int symbol_counter{0};
     while(input.get(read_symbol))
     {
-        read_code += read_symbol;
-        if(code_dict.count(read_code) == 0)
+        read_code += read_symbol; //Read one symbol at a time
+        if(code_dict.count(read_code) == 0)//If the symbol sequence could not be found in the dictionary we add it
         {
-            string dict_word = read_code.substr(0, read_code.size()-1); //The symbol sequence we want to output now
+            string dict_word = read_code.substr(0, read_code.size()-1); //The symbol sequence we want to output now(remove last symbol)
+            symbol_counter += dict_word.size();
             int word_length = ceil_log2(dict_size);
             //Get the binary codeword with the correct size
-            string binary = bitset<128>(code_dict.at(dict_word)).to_string().substr(128-word_length,128);
+            string binary = bitset<128>(code_dict.at(dict_word)).to_string().substr(128-word_length,128); //Int to binary string, max length 128
             encoded_string += binary;
+            codeword_counter++;
             code_dict[read_code] = dict_size++;  //Add new codeword
             read_code = read_symbol;
         }
     }
-    //Output the last symbol
+    //Output the last code
     int word_length = ceil_log2(dict_size);
-    string binary = bitset<128>(code_dict.at(read_code)).to_string().substr(128-word_length,128);
+    string binary = bitset<128>(code_dict.at(read_code)).to_string().substr(128-word_length,128); //Int to binary string, max length 128
     encoded_string += binary;
+
+    //Output rate to console
+    codeword_counter++;
+    symbol_counter += read_code.size();
+    double avg_bits_per_codeword = (double)encoded_string.size() / codeword_counter;
+    double avg_symbols_per_codeword = (double)symbol_counter/codeword_counter;
+    double rate = avg_bits_per_codeword/avg_symbols_per_codeword;
+    cout.precision(3);
+    cout << "Rate: " << rate << endl;
 
     //Write the bitstream to a file
     BitWriter bit_writer{};

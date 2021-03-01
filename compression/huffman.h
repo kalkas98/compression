@@ -31,7 +31,7 @@ bool writeHeader(const vector<pair<char, string>> &new_codewords, ofstream & out
 bool write_codewords(const map<char, string> &codewords, ifstream &input, ofstream &output);
 
 //Encodes the given file with huffman
-string encode(string inputFileName);
-void decode(string filePath, string fileExtension);
+string huffman_encode(string inputFileName);
+void huffman_decode(string filePath, string fileExtension);
 
 #endif
