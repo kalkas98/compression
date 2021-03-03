@@ -10,7 +10,7 @@
 
 
 //Buils a frequency table from the input stream where the key is the character and the value is the frequency of the character in the stream
-map<char, int> buildFreqTable(istream& input)
+map<char, int> build_freqtable(istream& input)
 {
     map<char, int> freqTable;
     char character;
@@ -32,20 +32,20 @@ map<char, int> buildFreqTable(istream& input)
 /*
 *  Builds a huffman tree based on a frequency table, returns root node to huffman tree
 */
-HuffNode* buildHuffmantree(const map<char, int> &freqTable)
+HuffNode* build_huffmantree(const map<char, int> &freqTable)
 {
     priority_queue<HuffNode> nodeQueue;
     for (auto const& freqPair: freqTable)
     {
         nodeQueue.push(HuffNode(freqPair.first, freqPair.second)); // Push all leaf nodes
     }
-    return huffmanTreeBuilder(nodeQueue);
+    return huffmantree_builder(nodeQueue);
 }
 
 /*
 *  Recursive function that constructs the huffman tree
 */
-HuffNode* huffmanTreeBuilder(priority_queue<HuffNode> &nodeQueue)
+HuffNode* huffmantree_builder(priority_queue<HuffNode> &nodeQueue)
 {
     if(nodeQueue.empty())
     {
@@ -64,19 +64,19 @@ HuffNode* huffmanTreeBuilder(priority_queue<HuffNode> &nodeQueue)
         nodeQueue.pop();
         nodeQueue.push(HuffNode(node0->frequency + node1->frequency, node0, node1));
 
-        return huffmanTreeBuilder(nodeQueue);
+        return huffmantree_builder(nodeQueue);
     }
 }
 
 /*
 *Builds an encodingMap containing characters as the key and their codeword as value
 */
-map<char, string> buildCodewordMap(HuffNode* root)
+map<char, string> build_codewordmap(HuffNode* root)
 {
     map<char, string> encodingMap;
     if(root != nullptr)
     {
-        codewordMapHelper(root, encodingMap);
+        codewordmap_helper(root, encodingMap);
     }
     return encodingMap;
 }
@@ -84,7 +84,7 @@ map<char, string> buildCodewordMap(HuffNode* root)
 /*
 * Recursive function for building a codeword map
 */
-void codewordMapHelper(HuffNode* tree, map<char,string>& encodingMap, string code)
+void codewordmap_helper(HuffNode* tree, map<char,string>& encodingMap, string code)
 {
     if(tree->isLeaf())
     {
@@ -92,25 +92,23 @@ void codewordMapHelper(HuffNode* tree, map<char,string>& encodingMap, string cod
     }
     else
     {
-        codewordMapHelper(tree->zeroChild, encodingMap, code + "0");
-        codewordMapHelper(tree->oneChild, encodingMap, code + "1");
+        codewordmap_helper(tree->zeroChild, encodingMap, code + "0");
+        codewordmap_helper(tree->oneChild, encodingMap, code + "1");
     }
 }
 
 //Takes a vector containing the length of codewords and returns codewords for
 //the huffman tree
-vector<string> codewordsFromCodewordLength(vector<int> lengths)
+vector<string> codewords_from_codeword_length(vector<int> lengths)
 {
     int c = 0;
     vector<string> codes(lengths.size());
-
     string binary = std::bitset<512>(c).to_string();
     codes[0] = binary.substr(binary.size()-lengths[0], lengths[0]);
-
     for (int i = 1; i < lengths.size(); i++)
     {
         c++;
-        c = c*pow(2,lengths[i]-lengths[i-1]);
+        c = c*pow(2, lengths[i]-lengths[i-1]);
         string binary = bitset<512>(c).to_string();
         codes[i] = binary.substr(binary.size()-lengths[i], lengths[i]);
     }
@@ -121,7 +119,7 @@ vector<string> codewordsFromCodewordLength(vector<int> lengths)
 //Returns a vector containing pairs containing symbols and their new codewords
 //The returned vector is sorted on codeword length.
 //The codeword map that this function takes as an argument is alaso altered so that it contains the new codewords
-vector<pair<char, string>> encodeWithCodewordlength(map<char,string>& codewords)
+vector<pair<char, string>> encode_with_codeword_length(map<char,string>& codewords)
 {
     vector<int> codeword_lengths;
     vector<pair<char, string>> sorted_codewords;
@@ -137,7 +135,7 @@ vector<pair<char, string>> encodeWithCodewordlength(map<char,string>& codewords)
     }
     );
 
-    vector<string> new_codewords = codewordsFromCodewordLength(codeword_lengths);
+    vector<string> new_codewords = codewords_from_codeword_length(codeword_lengths);
 
     for (int i = 0; i < sorted_codewords.size(); i++)
     {
@@ -148,7 +146,7 @@ vector<pair<char, string>> encodeWithCodewordlength(map<char,string>& codewords)
 }
 
 
-bool writeHeader(const vector<pair<char, string>> &new_codewords, ofstream & output)
+bool write_header(const vector<pair<char, string>> &new_codewords, ofstream & output)
 {
     //Write header on following format
     //N Number of symbols, S symbol, H*L H codewords with length L
@@ -214,10 +212,10 @@ string huffman_encode(string inputFileName)
     cout << "--- Encoding with huffman ---" << endl;
            
     ifstream input(inputFileName);
-    map<char, int> freqTable  = buildFreqTable(input);
+    map<char, int> freqTable  = build_freqtable(input);
 
-    HuffNode* root = buildHuffmantree(freqTable);
-    map<char, string> codewords = buildCodewordMap(root); //map that contains the symbol as key and the binary codword as value
+    HuffNode* root = build_huffmantree(freqTable);
+    map<char, string> codewords = build_codewordmap(root); //map that contains the symbol as key and the binary codword as value
 
 
     //Calculate the rate
@@ -238,7 +236,7 @@ string huffman_encode(string inputFileName)
     cout.precision(3);
 
     //Alter the code map so that the codewords are based on the length of the original code words
-    vector<pair<char, string>> new_codewords = encodeWithCodewordlength(codewords);
+    vector<pair<char, string>> new_codewords = encode_with_codeword_length(codewords);
     
     input.clear();
     input.seekg(0, ios::beg);
@@ -248,7 +246,7 @@ string huffman_encode(string inputFileName)
     cout << "Writing encoded data to " << encodedFile << endl;  
     ofstream output(encodedFile);
 
-    if(!writeHeader(new_codewords, output))
+    if(!write_header(new_codewords, output))
         throw runtime_error("Error when writing header to encoded file");
     if(!write_codewords(codewords,input,output))
         throw runtime_error("Error when writing codewords to encoded file");
@@ -264,7 +262,7 @@ string huffman_encode(string inputFileName)
 //Reads the header and returns the length of the header in bytes
 //Also takes a codeword map by reference and modifies it 
 //so that it ocntains the codewords and the symbols decribed by the header
-int readHeader(ifstream &input, map<string, char> & codewordmap)
+int read_header(ifstream &input, map<string, char> & codewordmap)
 {
     char N;
     readByte(N,input);
@@ -294,7 +292,7 @@ int readHeader(ifstream &input, map<string, char> & codewordmap)
             lengths.push_back(iL);
         }
     }
-    vector<string> codewords = codewordsFromCodewordLength(lengths);
+    vector<string> codewords = codewords_from_codeword_length(lengths);
     for (int i = 0; i < codewords.size(); i++)
     {
         codewordmap[codewords[i]] = symbols[i];
@@ -308,7 +306,7 @@ void huffman_decode(string filePath, string fileExtension)
     cout << "Decoding encoded file: " + filePath << endl;
     ifstream input(filePath);
     map<string, char> codewordmap;
-    int headerLength = readHeader(input, codewordmap);
+    int headerLength = read_header(input, codewordmap);
 
     input.close();
 

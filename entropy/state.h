@@ -16,7 +16,7 @@ struct State
     T state;
     map<T, double> probabilities;//Probabilities for state transitions
 
-    void init_probabilities(vector<T> symbols)
+    void initProbabilities(vector<T> symbols)
     {
         for (T symbol : symbols)
         {

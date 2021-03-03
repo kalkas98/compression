@@ -21,7 +21,7 @@ using namespace std;
  * 
  */
 template<typename T>
-vector<State<T>> getStates(const map<pair<T,T>, int> &transition_occurances, const map<T, int> &state_occurances)
+vector<State<T>> get_states(const map<pair<T,T>, int> &transition_occurances, const map<T, int> &state_occurances)
 {
     //Map where the key is the symbol(s) representing the state and the value is a State object containing the transition probabilities
     map<T, State<T>> states; 
@@ -33,7 +33,7 @@ vector<State<T>> getStates(const map<pair<T,T>, int> &transition_occurances, con
     }
     for (auto state: state_symbols)
     {
-        states[state].init_probabilities(state_symbols);
+        states[state].initProbabilities(state_symbols);
         states[state].state = state;
     }
     for (auto occurance : transition_occurances)
@@ -118,7 +118,7 @@ vector<double> entropy(ifstream &input)
     
     //Calcualkte state transition probabilities
     occurances[last_char]--; //Remove the occurance counted for the last char since no character follows it
-    vector<State<char>> states = getStates<char>(pair_occurances, occurances); //Get state probabilities
+    vector<State<char>> states = get_states<char>(pair_occurances, occurances); //Get state probabilities
 
     pair_occurances[trip.state]--; //Remove the last occurance counter for the last pair
     //Assemble a map containing the state transitions when a state consists of two characters
@@ -129,7 +129,7 @@ vector<double> entropy(ifstream &input)
         state_2_pair tmp = {{transition.first.new_char, transition.first.state.first}, transition.first.state};
         state_2_transitions[tmp] = transition.second;
     }
-    vector<State<pair<char,char>>> order_2_states = getStates<pair<char,char>>(state_2_transitions, pair_occurances); //Get state probabilities
+    vector<State<pair<char,char>>> order_2_states = get_states<pair<char,char>>(state_2_transitions, pair_occurances); //Get state probabilities
 
     //Use probabilities to get single symbol entropy
     double single_entropy{0};

@@ -14,7 +14,7 @@ using namespace std;
  *     Calculate entropy for one file:
  *     $ ./a.out [filepath]
  *  2. 
- *      Calculate entropies for multiple files. Filepaths to all files should be contained in the given file where each line contains one relative filepath to the curent dir
+ *      Calculate entropies for multiple files. Filepaths to all files should be contained in the given file where each line contains one filepath
  *      $ ./a.out compute [filepath]
  */
 int main(int argc, char* argv[])
