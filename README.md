@@ -1,2 +1,2 @@
 # compression
-Data compression stuff
+Entropy estimation and encoders/decoders for LZW and huffman.
