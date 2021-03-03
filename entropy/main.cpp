@@ -16,10 +16,6 @@ using namespace std;
  *  2. 
  *      Calculate entropies for multiple files. Filepaths to all files should be contained in the given file where each line contains one relative filepath to the curent dir
  *      $ ./a.out compute [filepath]
- *  3.
- *      $ ./a.out sparse [filepath] compute the entropy with a sparse matrix solver algorithm
- * 
- * 
  */
 int main(int argc, char* argv[])
 {
@@ -42,18 +38,13 @@ int main(int argc, char* argv[])
                 ifstream input(file_path);
                 vector<double> rates = entropy(input);
                 output << file_path << ": " << endl;
+                output.precision(3);
                 for(double rate: rates)
                 {
                     output << rate << "\n";
                 }
             }
             output.close();
-        }
-        else if(string(argv[2]) == "sparse")
-        {
-            string path = argv[1];
-            ifstream input(path);
-            entropy(input, true);
         }
     }
     else
