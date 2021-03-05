@@ -118,6 +118,7 @@ void lz_decode(ifstream &in, ofstream &out)
     //read indexes while the position for the next index to read starts before the last byte
     while(pos < bitstream_string.size()-8)
     {
+        //Keep track of the two most recently read sequences, symbols.second is the most recently read
         symbols.first = symbols.second;
         codeword_binary = bitstream_string.substr(pos, codeword_length); //Get the next index
         unsigned int codeword_index = binary_to_int(codeword_binary);

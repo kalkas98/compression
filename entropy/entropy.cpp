@@ -140,7 +140,7 @@ vector<double> entropy(ifstream &input)
     }
     cout << "Single entropy: " << single_entropy << endl;
 
-    double order_1_entropy_rate;
+    double order_1_entropy_rate{0};
     for (int i = 0; i < states.size(); i++)
     {
         for (auto prob : states[i].getProbablities())
