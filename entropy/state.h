@@ -1,7 +1,6 @@
 #include <vector>
 #include <map>
 
-using namespace std;
 
 #ifndef STATE_H
 #define STATE_H
@@ -9,26 +8,40 @@ using namespace std;
 /*
  * Struct for representing states and their transition probabilities to other states.
  * Takes a template parameter T that represents the symbol representation of a state
+ * T must have and implementation of the < operator
  */ 
 template<typename T>
 struct State
 {
-    T state;
-    map<T, double> probabilities;//Probabilities for state transitions
+    //Representation of the state eg. a char, a pair of chars or something else
+    T state; 
 
-    void initProbabilities(vector<T> symbols)
+
+    /* 
+     * map that contains probabilities for state transitions from the current state 
+     * The key represents another state
+     * The value is the probability for the state transition
+     */
+    std::map<T, double> probabilities;
+
+    /*
+     *  Takes a vector<T> containing symbols that represent the possible states this state can transition to
+     *  and initilizes all of the transition probabilities to 0
+     */
+    void initProbabilities(const std::vector<T> &symbols)
     {
-        for (T symbol : symbols)
+        for (T const &symbol : symbols)
         {
             probabilities[symbol] = 0;
         }
     }
-    // Returns a vector on probabilities where vector[i] contains the probability for
-    // symbol i in this state, the vector is sorted lexicographically
-    vector<double> getProbablities() const
+
+    // Returns a vector containing only the state transition probabilities 
+    // The vector is sorted in the same way as the keys of the probabilities map
+    std::vector<double> getProbablities() const
     {
-        vector<double> probs;
-        for (auto prob : probabilities)
+        std::vector<double> probs;
+        for (const auto prob : probabilities)
         {
            probs.push_back(prob.second);
         }

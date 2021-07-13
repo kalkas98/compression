@@ -8,7 +8,7 @@
 
 #ifndef ENTROPY_H
 #define ENTROPY_H
-vector<double> entropy(ifstream & file);
-vector<State<char>> get_states(const map<pair<char,char>, int> &conditional_occurances, const map<char, int> &followed_occurances);
+std::vector<double> entropy(std::ifstream & file);
+std::vector<State<char>> get_states(const std::map<std::pair<char,char>, int> &conditional_occurances, const std::map<char, int> &followed_occurances);
 void get_probabilities();
 #endif

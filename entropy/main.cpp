@@ -3,7 +3,6 @@
 #include <fstream>
 #include "entropy.h"
 
-using namespace std;
 /*
  * Author: Nils Johansson
  *  
@@ -22,22 +21,22 @@ int main(int argc, char* argv[])
     
     if(argc == 2)
     {
-        string path = argv[1];
-        ifstream input(path);
+        std::string path = argv[1];
+        std::ifstream input(path);
         entropy(input);
     }
     else if(argc == 3)
     {
-        if(string(argv[1]) == "compute")
+        if(std::string(argv[1]) == "compute")
         {
-            ofstream output("entropies.txt");
-            ifstream files(argv[2]);
-            string file_path;
+            std::ofstream output("entropies.txt");
+            std::ifstream files(argv[2]);
+            std::string file_path;
             while(getline(files,file_path))
             {
-                ifstream input(file_path);
-                vector<double> rates = entropy(input);
-                output << file_path << ": " << endl;
+                std::ifstream input(file_path);
+                std::vector<double> rates = entropy(input);
+                output << file_path << ": " << std::endl;
                 output.precision(3);
                 for(double rate: rates)
                 {
@@ -49,7 +48,7 @@ int main(int argc, char* argv[])
     }
     else
     {
-        cout << "Bad args" << endl;
+        std::cout << "Bad args" << std::endl;
     } 
     
     return 0;
