@@ -6,68 +6,77 @@
 #include <iostream>
 #include <cmath>
 
-using namespace std;
 
-/*
- * Takes one template parameter:
- * T - State type
- * 
- * Two function paramenters:
- * 
- * transition_occurances - Map that contains a transition as the key and the value as the number of occurances of that transition
- * state_occurances - Map that contains a state as the key and the total number of times a transition starts from the state as the value
- * 
- * Returns a vector of state objects, where each State object contains the probabilities for transitions to other states
- * 
- */
-template<typename T>
-vector<State<T>> get_states(const map<pair<T,T>, int> &transition_occurances, const map<T, int> &state_occurances)
+double log2(double n)
 {
-    //Map where the key is the symbol(s) representing the state and the value is a State object containing the transition probabilities
-    map<T, State<T>> states; 
-
-    vector<T> state_symbols;//Assemble all symbols and use them to init the probabilities for the states
-    for (auto state : state_occurances)
-    {
-        state_symbols.push_back(state.first);
-    }
-    for (auto state: state_symbols)
-    {
-        states[state].initProbabilities(state_symbols);
-        states[state].state = state;
-    }
-    for (auto occurance : transition_occurances)
-    {
-        double probability = (double)occurance.second/state_occurances.at(occurance.first.second);
-        states[occurance.first.second].probabilities[occurance.first.first] = probability; 
-        states[occurance.first.second].state = occurance.first.second;
-    }
-    vector<State<T>> stateVector;
-    for (auto state : states)
-    {
-        stateVector.push_back(state.second);
-    }   
-    return stateVector;
+    return log(n) / log(2);
 }
 
-//Struct that helps for reading three symbols at a time and recording the state transitions
-struct triple
+/*
+ * Returns a vector that contains all vectors containing the states for all the markov orders 
+ * in the given occurance_map
+ */
+std::vector<std::vector<State<std::string>>> get_states(std::vector<std::map<std::string, int>> &occurance_map, int order)
 {
-    pair<char,char> state;
-    char new_char{};
+    //Map where the key is the symbol(s) representing the state and the value is a State object containing the transition probabilities
+    std::vector<std::map<std::string, State<std::string>>> states(occurance_map.size()); 
 
-    bool operator <(const triple &other) const
+    //Assemble all symbols and use them to init the probabilities for the states
+    std::vector<std::vector<std::string>> state_symbols(occurance_map.size());
+    for (int i = 0; i < occurance_map.size(); i++)
     {
-        string s1 = string()+new_char+state.first+state.second;
-        string s2 = string()+other.new_char+other.state.first+other.state.second;
-        return s1 < s2; //Compare lexicograpically
+        for (const auto & pair : occurance_map[i])
+        {
+           state_symbols[i].push_back(pair.first);
+        }
     }
 
-    bool operator ==(const triple &other) const
+    for (int i = 0; i < state_symbols.size(); i++)
     {
-        return new_char == other.new_char && state == other.state;
+        std::cout << "Size: "<<  state_symbols[i].size() << std::endl;
+        for (const auto &symbol : state_symbols[i])
+        {
+            states[i][symbol].state = symbol;
+        }
     }
-};
+
+    typedef std::pair<std::string,std::string> string_pair;
+    std::vector<std::map<string_pair,int>> transition_vectors(order);//Vector containing maps specifying transition occurances between pairs of states
+
+    for (int i = 1; i < occurance_map.size(); i++)
+    {
+        for (auto state_occurance : occurance_map[i])
+        {
+            std::string state_string = state_occurance.first;
+            //The transition is from the state in the second position in the pair to the first state in the pair
+            string_pair state_transition{state_string.substr(0,state_string.size()-1), state_string.substr(1,state_string.size()-1)};
+            transition_vectors[i-1][state_transition] = state_occurance.second;
+        }
+    }
+
+    std::vector<std::vector<State<std::string>>> returned_states(states.size()); 
+    for (int i = 0; i < transition_vectors.size(); i++)
+    {
+        for (auto &transition : transition_vectors[i])
+        {
+            string_pair t_pair = transition.first;
+            int transition_occurances = transition.second;
+            double probability = (double)transition_occurances/occurance_map[i].at(t_pair.second);
+            if(states[i][t_pair.second].probabilities.find(t_pair.first) != states[i][t_pair.second].probabilities.end())
+                states[i][t_pair.second].probabilities[t_pair.first] = 0;
+            states[i][t_pair.second].probabilities[t_pair.first] = probability; 
+        }
+    }
+
+    for (int i = 0; i < states.size(); i++)
+    {
+        for (const auto &map_pair : states[i])
+        {
+            returned_states[i].push_back(map_pair.second);
+        }
+    }
+    return returned_states;
+}
 
 /*
  * Takes a input stream to a file and returns a vector containing
@@ -76,104 +85,82 @@ struct triple
  *  The entropy rate when viewing the file as a markov source of order 2
  * 
  */ 
-vector<double> entropy(ifstream &input)
+std::vector<double> entropy(std::ifstream &input, int order)
 {
-    map<char, int> occurances; //Occurances of single symbols
-    map<pair<char,char>, int> pair_occurances; //Occurances of symbol pairs (a, b), ie (b|a)
-    map<triple, int> triple_occurances; //Occurances of symbol triples (a,b,c), ie (c|ba)
 
-    pair<char,char> chars; //Read pairs of chars
-    triple trip; //Also read triples of chars
+    std::vector<std::map<std::string, int>> occurance_map(order+1);
+    std::vector<std::string> readers(order+1);
+    for (int i = 0; i < order; i++)
+    {
+        readers[i] = std::string(i+1, 'x');
+    }
+
     int n{0};
-    if(input.get(chars.second))
+    
+    char new_char;
+    while(input.get(new_char))
     {
-        occurances[chars.second]++;
         n++;
-        while(input.get(chars.first))
+        for (int i = 1; i < readers.size(); i++)
         {
-            n++;
-            pair_occurances[chars]++; //Count occurances for every symbol pair (a,b)
-            occurances[chars.first]++; //Count total number of occurances of every symbol
-            trip.new_char = chars.first;
-            if(n > 2)
-            {
-                triple_occurances[trip]++;
-            }
-            trip.state = chars;
-            chars.second = chars.first;
+            //Move the the content of the string one step to the right
+            readers[i] = new_char + readers[i].substr(0,i);
+
         }
+        readers[0][0] = new_char;
+        for (int i = 0; i < occurance_map.size(); i++)
+        {
+            if(n > i)
+                occurance_map[i][readers[i]]++; 
+        }
+        
     }
-    //Calculate single symbol and pair probabilities
-    char last_char = chars.second;
-    vector<double> stationary_dist_1;
-    vector<double> stationary_dist_2;
-    for (auto occurance : occurances)
+
+    std::vector<std::vector<double>> stationary_dist(order+1);
+
+    int order_index = 0;
+    for (const auto &occurances : occurance_map)
     {
-        stationary_dist_1.push_back((double)occurance.second/n);
-    }
-    for (auto pair : pair_occurances)
-    {
-        stationary_dist_2.push_back((double)pair.second/(n-1));
+        for (const auto &occ : occurances)
+        {
+            stationary_dist[order_index].push_back((double) occ.second/(n-order_index));
+        }
+        
+        order_index++;
     }
     
-    //Calcualkte state transition probabilities
-    occurances[last_char]--; //Remove the occurance counted for the last char since no character follows it
-    vector<State<char>> states = get_states<char>(pair_occurances, occurances); //Get state probabilities
 
-    pair_occurances[trip.state]--; //Remove the last occurance counter for the last pair
+    std::vector<std::vector<State<std::string>>> states = get_states(occurance_map, order); //Get state probabilities
+
     //Assemble a map containing the state transitions when a state consists of two characters
-    typedef pair<pair<char,char>, pair<char,char>> state_2_pair;
-    map<state_2_pair, int> state_2_transitions;
-    for (auto transition : triple_occurances)
-    {
-        state_2_pair tmp = {{transition.first.new_char, transition.first.state.first}, transition.first.state};
-        state_2_transitions[tmp] = transition.second;
-    }
-    vector<State<pair<char,char>>> order_2_states = get_states<pair<char,char>>(state_2_transitions, pair_occurances); //Get state probabilities
+    std::vector<double> entropy_rates(order, 0);
 
     //Use probabilities to get single symbol entropy
-    double single_entropy{0};
-    for (int i = 0; i < stationary_dist_1.size(); i++)
+    for (int i = 0; i < stationary_dist[0].size(); i++)
     {
-        double log_2 = log(stationary_dist_1[i]) / log(2);
-        single_entropy -= stationary_dist_1[i]*log_2;
+        entropy_rates[0] -= stationary_dist[0][i]*log2(stationary_dist[0][i]);
     }
-    cout << "Single entropy: " << single_entropy << endl;
 
-    double order_1_entropy_rate{0};
-    for (int i = 0; i < states.size(); i++)
+    for (int i = 0; i < order; i++)
     {
-        for (auto prob : states[i].getProbablities())
+        for (int j = 0; j < states[i].size(); j++)
         {
-            if(prob <= 0)
-                continue;
-            double calc = stationary_dist_1[i]*(-prob*(log(prob)/log(2)));
-            order_1_entropy_rate += calc;
+            for (const auto &prob_pair : states[i][j].probabilities)
+            {
+                double prob = prob_pair.second;
+                if(prob <= 0)
+                    continue;
+                double calc = stationary_dist[i][j]*(-prob * log2(prob));
+                entropy_rates[i+1] += calc;
+            }
         }
     }
-
-    double order_2_entropy_rate{0};
-    for (int i = 0; i < order_2_states.size(); i++)
-    {
-        for (auto prob : order_2_states[i].getProbablities())
-        {
-            if(prob <= 0)
-                continue;
-            double calc = stationary_dist_2[i]*(-prob*(log(prob)/log(2)));
-            order_2_entropy_rate += calc;
-        }
-    }
-
-    //Calculate entropy rate for order 1 and 2 using chain rule
-    cout << "Entropy rate order 1: " << order_1_entropy_rate << endl;
-    cout << "Entropy rate order 2 " << order_2_entropy_rate << endl;
-
-
-    //Return entropy rates
-    vector<double> rates;
-    rates.push_back(single_entropy);
-    rates.push_back(order_1_entropy_rate);
-    rates.push_back(order_2_entropy_rate);
     
-    return rates;
+    //Calculate entropy rate for order 1 and 2 using chain rule
+    for (int i = 0; i < entropy_rates.size(); i++)
+    {
+        std::cout << "Entropy rate order " << i << " " << entropy_rates[i] << std::endl;
+    }
+    
+    return entropy_rates;
 }

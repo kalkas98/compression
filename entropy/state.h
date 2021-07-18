@@ -40,10 +40,12 @@ struct State
     // The vector is sorted in the same way as the keys of the probabilities map
     std::vector<double> getProbablities() const
     {
-        std::vector<double> probs;
+        std::vector<double> probs(probabilities.size());
+        int i = 0;
         for (const auto prob : probabilities)
         {
-           probs.push_back(prob.second);
+            probs[i] = prob.second;
+            i++;
         }
         return probs;
     }
