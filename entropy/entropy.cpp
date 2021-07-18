@@ -6,15 +6,15 @@
 #include <iostream>
 #include <cmath>
 
-
+//Log with base 2
 double log2(double n)
 {
     return log(n) / log(2);
 }
 
 /*
- * Returns a vector that contains all vectors containing the states for all the markov orders 
- * in the given occurance_map
+ * Returns a vector containing vectors of State objects. In returned_vector[i] the state objects for a markov source
+ * of order i are contained. Each state object in the returned vector contains its state transition probabilities.
  */
 std::vector<std::vector<State<std::string>>> get_states(std::vector<std::map<std::string, int>> &occurance_map, int order)
 {
@@ -33,7 +33,6 @@ std::vector<std::vector<State<std::string>>> get_states(std::vector<std::map<std
 
     for (int i = 0; i < state_symbols.size(); i++)
     {
-        std::cout << "Size: "<<  state_symbols[i].size() << std::endl;
         for (const auto &symbol : state_symbols[i])
         {
             states[i][symbol].state = symbol;
@@ -80,10 +79,7 @@ std::vector<std::vector<State<std::string>>> get_states(std::vector<std::map<std
 
 /*
  * Takes a input stream to a file and returns a vector containing
- *  The signle symbol entropy
- *  The entropy rate when viewing the file as a markov source of order 1
- *  The entropy rate when viewing the file as a markov source of order 2
- * 
+ * the entropy rates up to the given order 
  */ 
 std::vector<double> entropy(std::ifstream &input, int order)
 {
