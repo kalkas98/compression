@@ -2,7 +2,6 @@
 #include <map>
 #include <queue>
 
-using namespace std;
 
 #ifndef HUFFNODE_H
 #define HUFFNODE_H
